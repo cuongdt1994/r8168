@@ -47,7 +47,6 @@
 #include <linux/etherdevice.h>
 #include <linux/delay.h>
 #include <linux/mii.h>
-#include <linux/of.h>
 #include <linux/if_vlan.h>
 #include <linux/crc32.h>
 #include <linux/interrupt.h>
@@ -116,16 +115,6 @@
 #define FIRMWARE_8168H_3    "rtl_nic/rtl8168h-3.fw"
 #define FIRMWARE_8168FP_3   "rtl_nic/rtl8168fp-3.fw"
 #define FIRMWARE_8168FP_4   "rtl_nic/rtl8168fp-4.fw"
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
-static inline void netif_set_gso_max_size(struct net_device *dev,
-					  unsigned int size)
-{
-	/* dev->gso_max_size is read locklessly from sk_setup_caps() */
-	WRITE_ONCE(dev->gso_max_size, size);
-}
-#endif
-
 
 /* Maximum number of multicast addresses to filter (vs. Rx-all-multicast).
    The RTL chips use a 64 element hash table based on the Ethernet CRC. */
@@ -409,7 +398,6 @@ static const struct {
 static struct pci_device_id rtl8168_pci_tbl[] = {
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8168), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8161), },
-		{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8136), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x2502), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x2600), },
         { PCI_VENDOR_ID_DLINK, 0x4300, 0x1186, 0x4b10,},
@@ -24781,22 +24769,6 @@ rtl8168_set_bios_setting(struct net_device *dev)
         }
 }
 
-static int rtl8168_led_configuration(struct rtl8168_private *tp)
-{
-        u32 led_data;
-        int ret;
-
-        ret = of_property_read_u32(tp->pci_dev->dev.of_node,
-                                  "realtek,led-data", &led_data);
-
-        if (ret)
-                return ret;
-
-        RTL_W16(tp, CustomLED, led_data);
-
-        return 0;
-}
-
 static void
 rtl8168_init_software_variable(struct net_device *dev)
 {
@@ -25370,8 +25342,6 @@ rtl8168_init_software_variable(struct net_device *dev)
                 tp->NotWrRamCodeToMicroP = TRUE;
                 tp->NotWrMcuPatchCode = TRUE;
         }
-		
-		rtl8168_led_configuration(tp);
 
         tp->NicCustLedValue = RTL_R16(tp, CustomLED);
 
