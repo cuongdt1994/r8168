@@ -47,7 +47,6 @@
 #include <linux/etherdevice.h>
 #include <linux/delay.h>
 #include <linux/mii.h>
-#include <linux/of.h>
 #include <linux/if_vlan.h>
 #include <linux/crc32.h>
 #include <linux/interrupt.h>
@@ -395,11 +394,10 @@ static const struct {
 #ifndef PCI_VENDOR_ID_DLINK
 #define PCI_VENDOR_ID_DLINK 0x1186
 #endif
-//Add support devices 
+
 static struct pci_device_id rtl8168_pci_tbl[] = {
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8168), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8161), },
-		{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8136), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x2502), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x2600), },
         { PCI_VENDOR_ID_DLINK, 0x4300, 0x1186, 0x4b10,},
@@ -24770,28 +24768,7 @@ rtl8168_set_bios_setting(struct net_device *dev)
                 break;
         }
 }
-static int
-rtl8168_devname_configuration(struct rtl8168_private *tp)
-{
-	 const char *devname;
-	 int ret;
-	 ret = of_property_read_string(tp->pci_dev->dev.of_node,"label", &devname);
-	 if (ret)
-		 return ret;
-	 strlcpy(tp->dev->name, devname, IFNAMSIZ);
-	 return 0;									
-}
-static int 
-rtl8168_led_configuration(struct rtl8168_private *tp)
-{
-	u32 led_data;
-	int ret;
-	ret = of_property_read_u32(tp->pci_dev->dev.of_node,"realtek,led-data", &led_data);
-	if (ret)
-		 return ret;
-	 RTL_W16(tp, CustomLED, led_data);
-	return 0;
-}
+
 static void
 rtl8168_init_software_variable(struct net_device *dev)
 {
@@ -25365,8 +25342,7 @@ rtl8168_init_software_variable(struct net_device *dev)
                 tp->NotWrRamCodeToMicroP = TRUE;
                 tp->NotWrMcuPatchCode = TRUE;
         }
-		rtl8168_devname_configuration(tp);
-		rtl8168_led_configuration(tp);
+
         tp->NicCustLedValue = RTL_R16(tp, CustomLED);
 
         rtl8168_get_hw_wol(dev);
