@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 ################################################################################
 #
-# r8125 is the Linux device driver released for Realtek 2.5Gigabit Ethernet
+# r8168 is the Linux device driver released for Realtek Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
 # Copyright(c) 2022 Realtek Semiconductor Corp. All rights reserved.
@@ -31,6 +31,7 @@
 ################################################################################
 
 CONFIG_SOC_LAN = n
+ENABLE_FIBER_SUPPORT = n
 ENABLE_REALWOW_SUPPORT = n
 ENABLE_DASH_SUPPORT = n
 ENABLE_DASH_PRINTER_SUPPORT = n
@@ -40,39 +41,34 @@ ENABLE_S5WOL = y
 ENABLE_S5_KEEP_CURR_MAC = n
 ENABLE_EEE = y
 ENABLE_S0_MAGIC_PACKET = n
-ENABLE_TX_NO_CLOSE = y
-ENABLE_MULTIPLE_TX_QUEUE = n
-ENABLE_PTP_SUPPORT = n
-ENABLE_PTP_MASTER_MODE = n
-ENABLE_RSS_SUPPORT = n
-ENABLE_LIB_SUPPORT = n
+CONFIG_DYNAMIC_ASPM = y
 ENABLE_USE_FIRMWARE_FILE = n
-DISABLE_PM_SUPPORT = n
-DISABLE_MULTI_MSIX_VECTOR = n
-ENABLE_DOUBLE_VLAN = n
-ENABLE_PAGE_REUSE = n
-ENABLE_RX_PACKET_FRAGMENT = n
+CONFIG_CTAP_SHORT_OFF = n
 
 ifneq ($(KERNELRELEASE),)
-	obj-m := r8125.o
-	r8125-objs := r8125_n.o rtl_eeprom.o rtltool.o
+	obj-m := r8168.o
+	r8168-objs := r8168_n.o r8168_asf.o rtl_eeprom.o rtltool.o
 	ifeq ($(CONFIG_SOC_LAN), y)
 		EXTRA_CFLAGS += -DCONFIG_SOC_LAN
 	endif
+	ifeq ($(ENABLE_FIBER_SUPPORT), y)
+	    r8168-objs += r8168_fiber.o
+		EXTRA_CFLAGS += -DENABLE_FIBER_SUPPORT
+	endif
 	ifeq ($(ENABLE_REALWOW_SUPPORT), y)
-		r8125-objs += r8125_realwow.o
+	    r8168-objs += r8168_realwow.o
 		EXTRA_CFLAGS += -DENABLE_REALWOW_SUPPORT
 	endif
 	ifeq ($(ENABLE_DASH_SUPPORT), y)
-		r8125-objs += r8125_dash.o
+	    r8168-objs += r8168_dash.o
 		EXTRA_CFLAGS += -DENABLE_DASH_SUPPORT
 	endif
 	ifeq ($(ENABLE_DASH_PRINTER_SUPPORT), y)
-		r8125-objs += r8125_dash.o
+	    r8168-objs += r8168_dash.o
 		EXTRA_CFLAGS += -DENABLE_DASH_SUPPORT -DENABLE_DASH_PRINTER_SUPPORT
 	endif
-	EXTRA_CFLAGS += -DCONFIG_R8125_NAPI
-	EXTRA_CFLAGS += -DCONFIG_R8125_VLAN
+	EXTRA_CFLAGS += -DCONFIG_R8168_NAPI
+	EXTRA_CFLAGS += -DCONFIG_R8168_VLAN
 	ifeq ($(CONFIG_DOWN_SPEED_100), y)
 		EXTRA_CFLAGS += -DCONFIG_DOWN_SPEED_100
 	endif
@@ -91,45 +87,15 @@ ifneq ($(KERNELRELEASE),)
 	ifeq ($(ENABLE_S0_MAGIC_PACKET), y)
 		EXTRA_CFLAGS += -DENABLE_S0_MAGIC_PACKET
 	endif
-	ifeq ($(ENABLE_TX_NO_CLOSE), y)
-		EXTRA_CFLAGS += -DENABLE_TX_NO_CLOSE
-	endif
-	ifeq ($(ENABLE_MULTIPLE_TX_QUEUE), y)
-		EXTRA_CFLAGS += -DENABLE_MULTIPLE_TX_QUEUE
-	endif
-	ifeq ($(ENABLE_PTP_SUPPORT), y)
-		r8125-objs += r8125_ptp.o
-		EXTRA_CFLAGS += -DENABLE_PTP_SUPPORT
-	endif
-	ifeq ($(ENABLE_PTP_MASTER_MODE), y)
-		EXTRA_CFLAGS += -DENABLE_PTP_MASTER_MODE
-	endif
-	ifeq ($(ENABLE_RSS_SUPPORT), y)
-		r8125-objs += r8125_rss.o
-		EXTRA_CFLAGS += -DENABLE_RSS_SUPPORT
-	endif
-	ifeq ($(ENABLE_LIB_SUPPORT), y)
-		r8125-objs += r8125_lib.o
-		EXTRA_CFLAGS += -DENABLE_LIB_SUPPORT
+	ifeq ($(CONFIG_DYNAMIC_ASPM), y)
+		EXTRA_CFLAGS += -DCONFIG_DYNAMIC_ASPM
 	endif
 	ifeq ($(ENABLE_USE_FIRMWARE_FILE), y)
-		r8125-objs += r8125_firmware.o
+		r8168-objs += r8168_firmware.o
 		EXTRA_CFLAGS += -DENABLE_USE_FIRMWARE_FILE
 	endif
-	ifeq ($(DISABLE_PM_SUPPORT), y)
-		EXTRA_CFLAGS += -DDISABLE_PM_SUPPORT
-	endif
-	ifeq ($(DISABLE_MULTI_MSIX_VECTOR), y)
-		EXTRA_CFLAGS += -DDISABLE_MULTI_MSIX_VECTOR
-	endif
-	ifeq ($(ENABLE_DOUBLE_VLAN), y)
-		EXTRA_CFLAGS += -DENABLE_DOUBLE_VLAN
-	endif
-	ifeq ($(ENABLE_PAGE_REUSE), y)
-		EXTRA_CFLAGS += -DENABLE_PAGE_REUSE
-	endif
-	ifeq ($(ENABLE_RX_PACKET_FRAGMENT), y)
-		EXTRA_CFLAGS += -DENABLE_RX_PACKET_FRAGMENT
+	ifeq ($(CONFIG_CTAP_SHORT_OFF), y)
+		EXTRA_CFLAGS += -DCONFIG_CTAP_SHORT_OFF
 	endif
 else
 	BASEDIR := /lib/modules/$(shell uname -r)
